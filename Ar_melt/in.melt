@@ -1,0 +1,37 @@
+# 3d Lennard-Jones melt
+
+units           real
+atom_style      atomic
+
+lattice         fcc 5.4    # face-centered cubic lattice
+region          box block 0 10 0 10 0 10
+create_box      1 box
+create_atoms    1 box
+mass            1 40.0     # Ar mass
+
+#region         r_center block 2 8 2 8 2 8    # removing outer layer of atoms
+#group          g_center region r_center
+#group          del subtract all g_center
+#delete_atoms   group del
+
+
+pair_style      lj/cut 8
+pair_coeff      1 1 0.24 3.4 8
+
+
+#compute        msd all msd
+
+thermo_style    custom  atoms step time cpu temp pe ke etotal press vol density #c_msd[4]
+thermo          100
+
+
+dump            1 all cfg 1000 ./cfg/c60.*.cfg mass type xs ys zs
+dump            2 all custom 1000 ./pos/c60.*.pos id type x y z
+
+
+timestep        0.5
+velocity        all create 10 1234 dist gaussian
+fix             1 all nvt temp 30 30 50
+
+
+run             50000
